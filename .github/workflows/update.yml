@@ -24,11 +24,16 @@ jobs:
 
       - name: Run parser
         run: node parse.js
-
+        
       - name: Commit and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add geosite.json geoip.json
-          git commit -m "Update JSON data" || echo "No changes"
-          git push
+          git config user.email "github-actions@github.com"
+          git add data/geosite.json data/geoip.json
+          git commit -m "Update JSON files"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/orkhv/geosite-geoip-viewer.git HEAD:main
+        
+
+      
