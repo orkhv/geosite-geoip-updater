@@ -9,6 +9,10 @@ const download = (url, dest) => new Promise((resolve, reject) => {
   const file = fs.createWriteStream(dest);
   https.get(url, (res) => {
     console.log(`Response status: ${res.statusCode}`);
+    if (res.statusCode !== 200) {
+      reject(new Error(`Failed to download: ${res.statusCode}`));
+      return;
+    }
     res.pipe(file);
     file.on('finish', () => {
       file.close();
@@ -24,6 +28,14 @@ const download = (url, dest) => new Promise((resolve, reject) => {
 const parseDat = async (protoFile, datFile, type) => {
   console.log(`Parsing ${datFile} with ${protoFile} as ${type}`);
   try {
+    // Проверяем существование файлов
+    if (!fs.existsSync(protoFile)) {
+      throw new Error(`Proto file not found: ${protoFile}`);
+    }
+    if (!fs.existsSync(datFile)) {
+      throw new Error(`Dat file not found: ${datFile}`);
+    }
+
     const root = await load(protoFile);
     console.log('Proto file loaded successfully');
     const Target = root.lookupType(type);
@@ -58,8 +70,13 @@ const parseDat = async (protoFile, datFile, type) => {
 const main = async () => {
   try {
     console.log('Starting main process');
+    console.log('Current directory:', process.cwd());
+    console.log('Directory contents:', fs.readdirSync('.'));
+    
     await download('https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat', 'geosite.dat');
     await download('https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat', 'geoip.dat');
+
+    console.log('Files after download:', fs.readdirSync('.'));
 
     const geosite = await parseDat('geosite.proto', 'geosite.dat', 'v2ray.geosite.List');
     const geoip = await parseDat('geoip.proto', 'geoip.dat', 'v2ray.geoip.List');

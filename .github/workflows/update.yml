@@ -25,7 +25,14 @@ jobs:
         run: npm install
 
       - name: Run parser
-        run: node parse.js
+        run: |
+          node parse.js
+          echo "=== Directory contents after script execution ==="
+          ls -la
+          echo "=== Contents of geosite.json ==="
+          cat geosite.json
+          echo "=== Contents of geoip.json ==="
+          cat geoip.json
 
       - name: Check for changes
         id: changes
