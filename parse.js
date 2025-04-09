@@ -1,28 +1,43 @@
 // parse.js
 import fs from 'fs';
 import https from 'https';
+import { URL } from 'url';
 import protobuf from 'protobufjs';
 const { load } = protobuf;
 
 const download = (url, dest) => new Promise((resolve, reject) => {
   console.log(`Downloading ${url} to ${dest}`);
   const file = fs.createWriteStream(dest);
-  https.get(url, (res) => {
-    console.log(`Response status: ${res.statusCode}`);
-    if (res.statusCode !== 200) {
-      reject(new Error(`Failed to download: ${res.statusCode}`));
-      return;
-    }
-    res.pipe(file);
-    file.on('finish', () => {
-      file.close();
-      console.log(`Download completed: ${dest}`);
-      resolve();
+  
+  const makeRequest = (url) => {
+    https.get(url, (res) => {
+      console.log(`Response status: ${res.statusCode}`);
+      
+      if (res.statusCode === 302 || res.statusCode === 301) {
+        const redirectUrl = new URL(res.headers.location, url).toString();
+        console.log(`Redirecting to: ${redirectUrl}`);
+        makeRequest(redirectUrl);
+        return;
+      }
+      
+      if (res.statusCode !== 200) {
+        reject(new Error(`Failed to download: ${res.statusCode}`));
+        return;
+      }
+      
+      res.pipe(file);
+      file.on('finish', () => {
+        file.close();
+        console.log(`Download completed: ${dest}`);
+        resolve();
+      });
+    }).on('error', (err) => {
+      console.error(`Download error: ${err.message}`);
+      reject(err);
     });
-  }).on('error', (err) => {
-    console.error(`Download error: ${err.message}`);
-    reject(err);
-  });
+  };
+
+  makeRequest(url);
 });
 
 const parseDat = async (protoFile, datFile, type) => {
