@@ -33,7 +33,7 @@ jobs:
           git config user.email "github-actions@github.com"
           git add data/geosite.json data/geoip.json
           git commit -m "Update JSON files"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/orkhv/geosite-geoip-updater.git HEAD:main
+          git push https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/orkhv/geosite-geoip-updater.git HEAD:main
 
         
 
