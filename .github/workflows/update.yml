@@ -1,4 +1,3 @@
-# .github/workflows/update.yml
 name: Update geosite & geoip JSON
 
 on:
@@ -24,6 +23,9 @@ jobs:
 
       - name: Run parser
         run: node parse.js
+      
+      - name: Print available secrets
+        run: echo "Available secrets: ${{ secrets.PERSONAL_ACCESS_TOKEN }}"
 
       - name: Commit and push
         env:
@@ -32,9 +34,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add data/geosite.json data/geoip.json
-          git commit -m "Update JSON files"
+          git commit -m "Update JSON files" || echo "No changes"
           git push https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/orkhv/geosite-geoip-updater.git HEAD:main
-
-        
-
-      
