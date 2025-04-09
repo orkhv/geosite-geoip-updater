@@ -47,6 +47,8 @@ jobs:
           
           # Принудительно добавляем файлы
           git add -f geosite.json geoip.json
+
+          git reset .github/workflows/update.yml || true
           
           # Создаем коммит с текущей датой
           git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
