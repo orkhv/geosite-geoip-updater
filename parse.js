@@ -5,6 +5,29 @@ import { URL } from 'url';
 import protobuf from 'protobufjs';
 const { load } = protobuf;
 
+// Функция для форматирования IP адреса
+function formatIP(ip) {
+  if (!Buffer.isBuffer(ip)) {
+    return ip;
+  }
+
+  // Определяем версию IP по длине буфера
+  if (ip.length === 4) {
+    // IPv4
+    return ip.join('.');
+  } else if (ip.length === 16) {
+    // IPv6
+    const parts = [];
+    for (let i = 0; i < ip.length; i += 2) {
+      parts.push(ip.slice(i, i + 2).toString('hex'));
+    }
+    return parts.join(':');
+  }
+  
+  // Если формат неизвестен, возвращаем hex представление
+  return ip.toString('hex');
+}
+
 const download = (url, dest) => new Promise((resolve, reject) => {
   console.log(`Downloading ${url} to ${dest}`);
   const file = fs.createWriteStream(dest);
@@ -70,7 +93,10 @@ const parseDat = async (protoFile, datFile, type) => {
     } else if (type === 'v2ray.geoip.List') {
       const result = parsed.entry.map(e => ({
         category: e.countryCode || 'unknown',
-        entries: e.cidrs.map(c => c.ip + '/' + c.prefix),
+        entries: e.cidrs.map(c => {
+          const formattedIP = formatIP(c.ip);
+          return `${formattedIP}/${c.prefix}`;
+        }),
       }));
       console.log(`Parsed ${result.length} geoip entries`);
       return result;
