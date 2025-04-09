@@ -1,7 +1,8 @@
 // parse.js
 import fs from 'fs';
 import https from 'https';
-import { load } from 'protobufjs';
+import protobuf from 'protobufjs';
+const { load } = protobuf;
 
 const download = (url, dest) => new Promise((resolve, reject) => {
   const file = fs.createWriteStream(dest);
