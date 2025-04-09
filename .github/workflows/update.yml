@@ -29,7 +29,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          git add data/geosite.json data/geoip.json
+          git add geosite.json geoip.json
           if git diff --cached --quiet; then
             echo "changes=false" >> $GITHUB_OUTPUT
           else
