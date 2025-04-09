@@ -1,0 +1,13 @@
+syntax = "proto3";
+package v2ray.geoip;
+message CIDR {
+  string ip = 1;
+  uint32 prefix = 2;
+}
+message Entry {
+  string countryCode = 1;
+  repeated CIDR cidrs = 2;
+}
+message List {
+  repeated Entry entry = 1;
+}

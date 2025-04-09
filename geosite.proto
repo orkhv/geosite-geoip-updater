@@ -1,0 +1,20 @@
+syntax = "proto3";
+package v2ray.geosite;
+message Domain {
+  enum Type {
+    Plain = 0;
+    Regex = 1;
+    Domain = 2;
+    Full = 3;
+    Keyword = 4;
+  }
+  Type type = 1;
+  string value = 2;
+}
+message Entry {
+  string countryCode = 1;
+  repeated Domain domain = 2;
+}
+message List {
+  repeated Entry entry = 1;
+}

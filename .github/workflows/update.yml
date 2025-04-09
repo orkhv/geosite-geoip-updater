@@ -1,0 +1,34 @@
+# .github/workflows/update.yml
+name: Update geosite & geoip JSON
+
+on:
+  schedule:
+    - cron: "0 3 * * *"  # ежедневно в 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install ProtobufJS
+        run: npm install protobufjs
+
+      - name: Run parser
+        run: node parse.js
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add geosite.json geoip.json
+          git commit -m "Update JSON data" || echo "No changes"
+          git push
