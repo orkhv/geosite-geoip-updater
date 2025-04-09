@@ -13,7 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # для правильной работы git diff
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js
@@ -26,31 +25,31 @@ jobs:
 
       - name: Run parser
         run: |
+          # Удаляем старые файлы если они есть
+          rm -f geosite.dat geoip.dat geosite.json geoip.json
+          
+          # Запускаем парсер
           node parse.js
+          
           echo "=== Directory contents after script execution ==="
           ls -la
-          echo "=== Contents of geosite.json ==="
-          cat geosite.json
-          echo "=== Contents of geoip.json ==="
-          cat geoip.json
-
-      - name: Check for changes
-        id: changes
-        run: |
-          git add geosite.json geoip.json
-          if git diff --cached --quiet; then
-            echo "changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "changes=true" >> $GITHUB_OUTPUT
-          fi
+          
+          echo "=== First few lines of geosite.json ==="
+          head -n 10 geosite.json
+          
+          echo "=== First few lines of geoip.json ==="
+          head -n 10 geoip.json
 
       - name: Commit and push
-        if: steps.changes.outputs.changes == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: update geo data $(date +'%Y-%m-%d')"
-          git fetch origin main
-          git reset --soft origin/main
-          git commit -m "chore: update geo data $(date +'%Y-%m-%d')"
+          
+          # Принудительно добавляем файлы
+          git add -f geosite.json geoip.json
+          
+          # Создаем коммит с текущей датой
+          git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          
+          # Пушим изменения
           git push
