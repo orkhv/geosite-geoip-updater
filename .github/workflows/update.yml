@@ -5,6 +5,9 @@ on:
     - cron: "0 3 * * *"  # ежедневно в 03:00 UTC
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -45,10 +48,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Принудительно добавляем файлы
+          # Принудительно добавляем только нужные файлы
           git add -f geosite.json geoip.json
-
-          git reset .github/workflows/update.yml || true
           
           # Создаем коммит с текущей датой
           git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
