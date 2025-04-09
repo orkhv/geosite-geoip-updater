@@ -5,42 +5,73 @@ import protobuf from 'protobufjs';
 const { load } = protobuf;
 
 const download = (url, dest) => new Promise((resolve, reject) => {
+  console.log(`Downloading ${url} to ${dest}`);
   const file = fs.createWriteStream(dest);
   https.get(url, (res) => {
+    console.log(`Response status: ${res.statusCode}`);
     res.pipe(file);
-    file.on('finish', () => file.close(resolve));
-  }).on('error', (err) => reject(err));
+    file.on('finish', () => {
+      file.close();
+      console.log(`Download completed: ${dest}`);
+      resolve();
+    });
+  }).on('error', (err) => {
+    console.error(`Download error: ${err.message}`);
+    reject(err);
+  });
 });
 
 const parseDat = async (protoFile, datFile, type) => {
-  const root = await load(protoFile);
-  const Target = root.lookupType(type);
-  const buffer = fs.readFileSync(datFile);
-  const parsed = Target.decode(buffer);
+  console.log(`Parsing ${datFile} with ${protoFile} as ${type}`);
+  try {
+    const root = await load(protoFile);
+    console.log('Proto file loaded successfully');
+    const Target = root.lookupType(type);
+    console.log('Target type found');
+    const buffer = fs.readFileSync(datFile);
+    console.log(`Read ${buffer.length} bytes from ${datFile}`);
+    const parsed = Target.decode(buffer);
+    console.log('Successfully decoded data');
 
-  if (type === 'v2ray.geosite.List') {
-    return parsed.entry.map(e => ({
-      category: e.countryCode || 'unknown',
-      entries: e.domain.map(d => d.value),
-    }));
-  } else if (type === 'v2ray.geoip.List') {
-    return parsed.entry.map(e => ({
-      category: e.countryCode || 'unknown',
-      entries: e.cidrs.map(c => c.ip + '/' + c.prefix),
-    }));
+    if (type === 'v2ray.geosite.List') {
+      const result = parsed.entry.map(e => ({
+        category: e.countryCode || 'unknown',
+        entries: e.domain.map(d => d.value),
+      }));
+      console.log(`Parsed ${result.length} geosite entries`);
+      return result;
+    } else if (type === 'v2ray.geoip.List') {
+      const result = parsed.entry.map(e => ({
+        category: e.countryCode || 'unknown',
+        entries: e.cidrs.map(c => c.ip + '/' + c.prefix),
+      }));
+      console.log(`Parsed ${result.length} geoip entries`);
+      return result;
+    }
+    return [];
+  } catch (error) {
+    console.error(`Error parsing ${datFile}:`, error);
+    throw error;
   }
-  return [];
 };
 
 const main = async () => {
-  await download('https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat', 'geosite.dat');
-  await download('https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat', 'geoip.dat');
+  try {
+    console.log('Starting main process');
+    await download('https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat', 'geosite.dat');
+    await download('https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat', 'geoip.dat');
 
-  const geosite = await parseDat('geosite.proto', 'geosite.dat', 'v2ray.geosite.List');
-  const geoip = await parseDat('geoip.proto', 'geoip.dat', 'v2ray.geoip.List');
+    const geosite = await parseDat('geosite.proto', 'geosite.dat', 'v2ray.geosite.List');
+    const geoip = await parseDat('geoip.proto', 'geoip.dat', 'v2ray.geoip.List');
 
-  fs.writeFileSync('geosite.json', JSON.stringify(geosite, null, 2));
-  fs.writeFileSync('geoip.json', JSON.stringify(geoip, null, 2));
+    console.log('Writing JSON files');
+    fs.writeFileSync('geosite.json', JSON.stringify(geosite, null, 2));
+    fs.writeFileSync('geoip.json', JSON.stringify(geoip, null, 2));
+    console.log('Process completed successfully');
+  } catch (error) {
+    console.error('Main process error:', error);
+    process.exit(1);
+  }
 };
 
 main();
