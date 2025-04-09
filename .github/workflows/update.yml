@@ -48,11 +48,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Принудительно добавляем только нужные файлы
+          echo "=== Текущий статус git ==="
+          git status
+          
+          echo "=== Добавляем файлы в git ==="
           git add -f geosite.json geoip.json
           
-          # Создаем коммит с текущей датой
-          git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          echo "=== Статус после добавления файлов ==="
+          git status
           
-          # Пушим изменения
-          git push
+          echo "=== Создаем коммит ==="
+          git diff --cached --quiet || git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')"
+          
+          echo "=== Пушим изменения ==="
+          git push origin main --force
