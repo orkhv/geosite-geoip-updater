@@ -51,6 +51,9 @@ jobs:
           echo "=== Текущий статус git ==="
           git status
           
+          echo "=== Обновляем временные метки файлов ==="
+          touch geosite.json geoip.json
+          
           echo "=== Добавляем файлы в git ==="
           git add -f geosite.json geoip.json
           
