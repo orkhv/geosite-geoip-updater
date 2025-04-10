@@ -162,10 +162,16 @@ const parseDat = async (protoFile, datFile, type) => {
     console.log('Successfully decoded data');
 
     if (type === 'v2ray.geosite.List') {
-      const result = parsed.entry.map(e => ({
-        category: e.countryCode || 'unknown',
-        entries: e.domain.map(d => d.value).filter(value => value.startsWith('include:') || !value.startsWith('include:')),
-      }));
+1      const result = parsed.entry.map(e => {
+        const includes = e.domain.filter(d => d.value.startsWith('include:'));
+        if (includes.length > 0) {
+          console.log(`Category ${e.countryCode} includes:`, includes.map(d => d.value));
+        }
+        return {
+          category: e.countryCode || 'unknown',
+          entries: e.domain.map(d => d.value).filter(value => value.startsWith('include:') || !value.startsWith('include:')),
+        };
+      });
       console.log(`Parsed ${result.length} geosite entries`);
       return result;
     } else if (type === 'v2ray.geoip.List') {
