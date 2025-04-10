@@ -54,6 +54,10 @@ jobs:
           echo "=== Обновляем временные метки файлов ==="
           touch geosite.json geoip.json
           
+          echo "=== Добавляем фиктивное изменение ==="
+          echo "" >> geosite.json
+          echo "" >> geoip.json
+
           echo "=== Добавляем файлы в git ==="
           git add -f geosite.json geoip.json
           
@@ -62,6 +66,10 @@ jobs:
           
           echo "=== Создаем коммит ==="
           git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')"
+
+          echo "=== Удаляем фиктивное изменение ==="
+          sed -i '' -e '$ d' geosite.json
+          sed -i '' -e '$ d' geoip.json
           
           echo "=== Пушим изменения ==="
           git push origin main --force
