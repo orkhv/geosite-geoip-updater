@@ -58,7 +58,7 @@ jobs:
           git status
           
           echo "=== Создаем коммит ==="
-          git diff --cached --quiet || git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')"
+          git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')"
           
           echo "=== Пушим изменения ==="
           git push origin main --force
