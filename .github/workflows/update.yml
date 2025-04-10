@@ -68,8 +68,8 @@ jobs:
           git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')"
 
           echo "=== Удаляем фиктивное изменение ==="
-          sed -i '' -e '$ d' geosite.json
-          sed -i '' -e '$ d' geoip.json
+          sed -i '$ d' geosite.json
+          sed -i '$ d' geoip.json
           
           echo "=== Пушим изменения ==="
           git push origin main --force
