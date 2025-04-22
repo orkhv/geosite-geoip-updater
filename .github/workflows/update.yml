@@ -32,7 +32,7 @@ jobs:
           rm -f geosite.dat geoip.dat geosite.json geoip.json
           
           # Запускаем парсер
-          node parse.js
+          node --experimental-json-modules parse.js
           
           echo "=== Directory contents after script execution ==="
           ls -la

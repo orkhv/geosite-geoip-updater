@@ -162,8 +162,8 @@ const parseDat = async (protoFile, datFile, type) => {
     console.log('Successfully decoded data');
 
     if (type === 'v2ray.geosite.List') {
-1      const result = parsed.entry.map(e => {
-        const includes = e.domain.filter(d => d.value.startsWith('include:'));
+      let result = parsed.entry.map(e => {
+        let includes = e.domain.filter(d => d.value.startsWith('include:'));
         if (includes.length > 0) {
           console.log(`Category ${e.countryCode} includes:`, includes.map(d => d.value));
         }
