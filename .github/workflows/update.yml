@@ -14,32 +14,27 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v7
         with:
-          node-version: 18
+          node-version: 24
 
       - name: Install dependencies
         run: npm install
 
       - name: Run parser
         run: |
-          # Удаляем старые файлы если они есть
           rm -f geosite.dat geoip.dat geosite.json geoip.json
-          
-          # Запускаем парсер
           node --experimental-json-modules parse.js
-          
+
           echo "=== Directory contents after script execution ==="
           ls -la
-          
+
           echo "=== First few lines of geosite.json ==="
           head -n 10 geosite.json
-          
+
           echo "=== First few lines of geoip.json ==="
           head -n 10 geoip.json
 
@@ -47,29 +42,18 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          echo "=== Текущий статус git ==="
-          git status
-          
-          echo "=== Обновляем временные метки файлов ==="
-          touch geosite.json geoip.json
-          
-          echo "=== Добавляем фиктивное изменение ==="
-          echo "" >> geosite.json
-          echo "" >> geoip.json
 
-          echo "=== Добавляем файлы в git ==="
+          # Ровно один перевод строки в конце. Прошлый шаг дописывал пустую строку,
+          # из-за этого на следующий день diff пропадал и git commit падал.
+          for file in geosite.json geoip.json; do
+            perl -i -0777 -pe 's/\n*\z/\n/' "$file"
+          done
+
           git add -f geosite.json geoip.json
-          
-          echo "=== Статус после добавления файлов ==="
-          git status
-          
-          echo "=== Создаем коммит ==="
-          git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')"
+          if git diff --cached --quiet; then
+            echo "Изменений нет, коммит не нужен"
+            exit 0
+          fi
 
-          echo "=== Удаляем фиктивное изменение ==="
-          sed -i '$ d' geosite.json
-          sed -i '$ d' geoip.json
-          
-          echo "=== Пушим изменения ==="
-          git push origin main --force
+          git commit -m "update: geo data $(date +'%Y-%m-%d %H:%M:%S')"
+          git push
